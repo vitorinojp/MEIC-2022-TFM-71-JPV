@@ -1,0 +1,39 @@
+{
+  "properties": [
+    {
+      "name": "orion.host",
+      "type": "java.lang.String",
+      "description": "Hostname for orion."
+    },
+    {
+      "name": "orion.port",
+      "type": "java.lang.String",
+      "description": "Port for orion."
+    },
+    {
+      "name": "orion.hostURL",
+      "type": "java.lang.String",
+      "description": "${orion.protocol}://${orion.host}:${orion.port}."
+    },
+    {
+      "name": "orion.protocol",
+      "type": "java.lang.String",
+      "description": "http or https for orion."
+    },
+    {
+      "name": "iotmapper.http.cache.microcaching",
+      "type": "java.lang.String",
+      "description": "Seconds for iotmapper.http.cache.microcaching."
+    },
+    {
+      "name": "iotmapper.http.cache.errorcaching",
+      "type": "java.lang.String",
+      "description": "Seconds for iotmapper.http.cache.errorcaching."
+    },
+    {
+      "name": "iotmapper.http.cache.minicaching",
+      "type": "java.lang.String",
+      "description": "Seconds for iotmapper.http.cache.minicaching."
+    }
+  ]
+}

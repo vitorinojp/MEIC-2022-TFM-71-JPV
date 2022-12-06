@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orion-input-central
+  namespace: fiware
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orion-input-central
+  template:
+    metadata:
+      labels:
+        app: orion-input-central
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: input
+      containers:
+        - name: orion
+          image: fiware/orion:3.5.1
+          resources:
+            requests:
+              ephemeral-storage: "500Mi"
+              memory: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
+              memory: "2Gi"
+          ports:
+            - containerPort: 1026
+          livenessProbe:
+            httpGet:
+              path: /version
+              port: 1026
+            initialDelaySeconds: 25
+            periodSeconds: 3
+          args: ['-reqMutexPolicy', 'none', '-logLevel', 'ERROR', '-writeConcern', '0', '-reqPoolSize', "4", '-statCounters', '-statSemWait', '-statTiming', '-statNotifQueue' ]
+          env:
+            - name: ORION_PORT
+              value: "1026"
+            - name: ORION_MONGO_HOST
+              value: "mongodb-input-central-svc.fiware.svc.cluster.local" # Assumes this connection string, not the one set in the secret, as they have incompatible formats
+            - name: ORION_MONGO_PORT
+              value: "27017"
+            - name: ORION_MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-input-central-admin-admin-user
+                  key: username
+            - name: ORION_MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-input-central-admin-admin-user
+                  key: password
+            - name: ORION_MONGO_AUTH_SOURCE
+              value: "admin"
+            - name: ORION_MONGO_SSL
+              value: "FALSE"
+            - name: ORION_MONGO_AUTH_MECH
+              value: "SCRAM-SHA-256"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-input-central-svc
+  namespace: fiware
+  labels:
+    app: orion-input-central-svc
+spec:
+  selector:
+    app: orion-input-central
+  type: NodePort
+  ports:
+    - port: 1026
+      protocol: TCP
+      targetPort: 1026
+      nodePort: 31026

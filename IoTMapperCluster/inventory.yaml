@@ -1,0 +1,41 @@
+---
+all:
+    children:
+      master:
+        hosts:
+          {{ master_ip }}
+      workers:
+        hosts:
+          {{ worker_ip }}
+    vars:
+      # Ansible vars
+      ansible_user: tfm
+      ansible_password: "{{ ansible_password_from_vault }}"
+      ansible_become_password: "{{ ansible_password_from_vault }}"
+      # Kubernetes vars
+      kubernetes_user: microk8s
+      # Kafka sub-cluster vars
+      strimzi_version: 0.28.0
+      kafka_version: 3.1.0
+      kafka_path: /kubernetes/kafka
+      # FIWARE sub-cluster vars
+      fiware_path: /kubernetes/fiware
+      mongodb_operator_version: 0.7.3
+      mongo_version: 4.4.12
+      fiware_orion_version: 3.5.1
+      fiware_cygnus_version: 2.6.0
+      iotagent_lorawan_version: 1.2.3
+      # Presentation sub-cluster vars
+      presentation_path: /kubernetes/presentation
+      # Monitoring add-ons
+      monitoring_path: /kubernetes/monitoring
+      ## IoTMapper
+      iotmapper_dp_version: 1.0.0
+      ## Load balacing
+      load_balancing_path: /kubernetes/loadbalancing
+      ingress_version: 0.1.0
+      metallb_version: 0.1.0
+      loadbalancing_ip_range: {{ frontend_ip }}-{{ frontend_ip }}
+      backend_host: {{ frontend_ip }}
+      ## Mqtt Broker
+      mqtt_broker_path: /kubernetes/mqtt

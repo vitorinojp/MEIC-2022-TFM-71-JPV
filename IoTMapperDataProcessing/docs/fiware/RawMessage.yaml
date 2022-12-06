@@ -1,0 +1,53 @@
+RawMessage:
+  description: 'Description of a generic and raw message entity, containing a measurement coming from a device or other data source.'
+  properties:
+    dateCreated:
+      description: 'Entity creation timestamp. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    dateModified:
+      description: 'Timestamp of the last modification of the entity. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    id:
+      anyOf:
+        - description: 'Property. Identifier format of any NGSI entity'
+          maxLength: 256
+          minLength: 1
+          pattern: ^[\w\-\.\{\}\$\+\*\[\]`|~^@!,:\\]+$
+          type: string
+        - description: 'Property. Identifier format of any NGSI entity'
+          format: uri
+          type: string
+      description: 'Unique identifier of the entity'
+      x-ngsi:
+        type: Property
+    name:
+      description: 'The name of this item.'
+      type: string
+      x-ngsi:
+        type: Property
+    rawMessage:
+      description: 'The raw textual value of the message, typically a JSON formatted string. Must be URL safe'
+      type: string
+      x-ngsi:
+        model: https://schema.org/Text
+        type: Property
+    type:
+      description: 'NGSI Entity type. It has to be RawMessage'
+      enum:
+        - RawMessage
+      type: string
+      x-ngsi:
+        type: Property
+
+  required:
+    - id
+    - type
+    - rawMessage
+  type: object
+  version: 0.1.0

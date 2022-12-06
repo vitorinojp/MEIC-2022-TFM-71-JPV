@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongo-exit
+  namespace: fiware
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mongo-exit-role
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["deployments"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mongo-exit-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: mongo-exit
+    namespace: fiware
+roleRef:
+  kind: ClusterRole
+  name: mongo-exit-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-exit-svc
+  namespace: fiware
+  labels:
+    name: mongo-exit-svc
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None
+  selector:
+    app: mongo-exit-cluster
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-exit-cluster
+  namespace: fiware
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-exit-cluster
+  template:
+    metadata:
+      labels:
+        app: mongo-exit-cluster
+    spec:
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: mongo-exit
+      nodeSelector:
+        node.iotmapper/layer: exit
+      containers:
+        - name: mongodb
+          image: docker.io/mongo:4.4.12
+          command: ["/bin/sh"]
+          args: ["-c", "mongod --replSet=rs0 --bind_ip_all"]
+          resources:
+            limits:
+              cpu: "2"
+              memory: 1500Mi
+            requests:
+              cpu: "0.5"
+              memory: 200Mi
+          ports:
+            - name: mongo-port
+              containerPort: 27017
+          volumeMounts:
+            - name: mongo-exit-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-exit-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi

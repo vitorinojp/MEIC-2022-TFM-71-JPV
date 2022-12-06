@@ -1,0 +1,35 @@
+- name: deploy_mqtt
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: Create the mqtt namespace
+      kubernetes.core.k8s:
+        name: mqtt
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: add mqtt folder
+      file:
+        path: "~/ansible/mqtt"
+        state: directory
+
+    - name: synchronizing "{{ mqtt_broker_path }}/"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ mqtt_broker_path }}/"
+        dest: "~/ansible/mqtt/"
+        rsync_opts:
+          - "--chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r"
+          - "--chown={{ ansible_user }}:microk8s"
+
+    - name: run Kubectl for MQTT Secret
+      k8s:
+        src: "~/ansible/mqtt/mqtt-secret.yaml"
+        apply: yes
+        wait: yes
+
+    - name: run Kubectl for MQTT Broker (Mosquitto)
+      k8s:
+        src: "~/ansible/mqtt/mqtt.yaml"
+        apply: yes
+        wait: yes

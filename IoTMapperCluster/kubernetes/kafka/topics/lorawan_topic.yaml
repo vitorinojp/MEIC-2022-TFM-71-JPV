@@ -1,0 +1,33 @@
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: lora-ttnmapper-input
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka-input-central-cluster
+    context: cygnus-format-static-topic
+spec:
+  partitions: 1
+  replicas: 1
+  topicName: lorawanxffffx002fttnmapper
+  config:
+    retention.ms: 7200000
+    segment.bytes: 1073741824
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: lora-ngsi-output
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka-input-central-cluster
+    context: ngsi-format-static-topic
+spec:
+  partitions: 1
+  replicas: 1
+  topicName: LoRaWAN_Aggregated_Metrics
+  config:
+    retention.ms: 7200000
+    segment.bytes: 1073741824

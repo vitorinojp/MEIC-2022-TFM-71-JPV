@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: resgister-cygnus-to-orion
+  namespace: fiware
+spec:
+  template:
+    spec:
+      containers:
+        - name: provision-curl-7-82-0
+          image: curlimages/curl:7.82.0
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - >
+              "curl --location --request POST 'http://orion-input-central-svc:1026/v2/subscriptions' \
+              --header 'fiware-service: lorawan' \
+              --header 'fiware-servicepath: /ttnmapper' \
+              --header 'Content-Type: application/json' \
+              --data-raw '{
+                            \"description\": \"Notify Cygnus of all changes\",
+                            \"subject\": {
+                              \"entities\": [
+                                {
+                                  \"idPattern\": \".*\",
+                                  \"type\": \"RawMessage\"
+                                }
+                              ]
+                            },
+                            \"notification\": {
+                              \"http\": {
+                                \"url\": \"http://cygnus-input-central-svc.fiware:5051/notify\"
+                              }
+                            }
+                          }'"
+      restartPolicy: OnFailure
+  backoffLimit: 4

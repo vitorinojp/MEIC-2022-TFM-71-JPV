@@ -1,0 +1,175 @@
+---
+- name: deploy_kafka
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: add kafka folders
+      file:
+        path: "~/ansible/{{item}}"
+        state: directory
+        mode: 0777
+      with_items:
+        - "kafka"
+        - "kafka/topics"
+        - "kafka/connectors"
+        - "kafka/metrics"
+
+    - name: Create the kafka namespace
+      kubernetes.core.k8s:
+        name: kafka
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: synchronizing "{{ kafka_path }}/strimzi_{{ strimzi_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/strimzi_{{ strimzi_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/strimzi_{{ strimzi_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Operator with Strimzi
+      k8s:
+        src: "~/ansible/kafka/strimzi_{{ strimzi_version }}.yaml"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+        name: kafka
+
+    - name: copy "{{ kafka_path }}/metrics/"
+      become: yes
+      copy:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/metrics/"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/metrics/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+          # rsync_opts:
+        #  - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: dynamic listing of "{{ kafka_path }}/metrics/"
+      find:
+        paths: "~/ansible/kafka/metrics/"
+        file_type: file
+        patterns: '*.yaml'
+      register: kafka_metrics_list
+
+    - name: run kubectl for "~/ansible/kafka/metrics/"
+      loop: "{{ kafka_metrics_list['files'] }}"
+      k8s:
+        src: "{{ item.path }}"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+
+    - name: synchronizing "{{ kafka_path }}/strimzi_kafka_{{ kafka_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/strimzi_kafka_{{ kafka_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/strimzi_kafka_{{ kafka_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Apache Kafka custom rescource
+      k8s:
+        src: "~/ansible/kafka/strimzi_kafka_{{ kafka_version }}.yaml"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Ready
+          status: true
+        name: kafka
+
+    - name: copy "{{ kafka_path }}/topics/"
+      become: yes
+      copy:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/topics/"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/topics/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+       # rsync_opts:
+        #  - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+         # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: dynamic listing of "{{ kafka_path }}/topics/"
+      find:
+        paths: "~/ansible/kafka/topics/"
+        file_type: file
+        patterns: '*.yaml'
+      register: kafka_topics_list
+
+    - name: run kubectl for "~/ansible/kafka/topics/"
+      loop: "{{ kafka_topics_list['files'] }}"
+      k8s:
+        src: "{{ item.path }}"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+        name: kafka
+
+    - name: synchronizing "{{ kafka_path }}/iotmapper_dataprocessing_{{ iotmapper_dp_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/iotmapper_dataprocessing_{{ iotmapper_dp_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/iotmapper_dataprocessing_{{ iotmapper_dp_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for IoTMapperDataProcessing
+      k8s:
+        src: "~/ansible/kafka/iotmapper_dataprocessing_{{ iotmapper_dp_version }}.yaml"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+        name: kafka
+
+    - name: synchronizing "{{ kafka_path }}/strimzi_kafka_connect.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/strimzi_kafka_connect.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/strimzi_kafka_connect.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Kafka Connect
+      k8s:
+        src: "~/ansible/kafka/strimzi_kafka_connect.yaml"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes
+        name: kafka
+
+    - name: copy "{{ kafka_path }}/connectors/"
+      become: yes
+      copy:
+        src: "{{ inventory_dir }}/{{ kafka_path }}/connectors/"
+        dest: "/home/{{ ansible_user }}/ansible/kafka/connectors/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+            # rsync_opts:
+            #  - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+          # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: dynamic listing of "{{ kafka_path }}/connectors/"
+      find:
+        paths: "~/ansible/kafka/connectors/"
+        file_type: file
+        patterns: '*.yaml'
+      register: kafka_connectors_list
+
+    - name: run kubectl for "~/ansible/kafka/connectors/"
+      loop: "{{ kafka_connectors_list['files'] }}"
+      k8s:
+        src: "{{ item.path }}"
+        kubeconfig: '~/.kube/config'
+        apply: yes
+        wait: yes

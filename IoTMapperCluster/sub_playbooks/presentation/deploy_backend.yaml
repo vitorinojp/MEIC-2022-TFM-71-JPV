@@ -1,0 +1,18 @@
+---
+- name: deploy_presentation
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: synchronizing "{{ presentation_path }}/backend.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ presentation_path }}/backend.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/presentation/backend.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for backend
+      k8s:
+        src: "/home/{{ ansible_user }}/ansible/presentation/backend.yaml"
+        apply: yes
+        wait: yes

@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: iotmapper-dataprocessing-input-central
+  namespace: kafka
+  labels:
+    app: iotmapper-dataprocessing-input-central
+spec:
+  serviceName: iotmapper-dataprocessing
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotmapper-dataprocessing-input-central
+  template:
+    metadata:
+      labels:
+        app: iotmapper-dataprocessing-input-central
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: input
+      containers:
+        - name: iotmapper-dataprocessing
+          image: vitorinojp/iotmapperdataprocessing:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: state-stores
+              mountPath: /var/data/state-stores
+          env:
+            - name: KAFKA_HOST
+              value: kafka-input-central-cluster-kafka-bootstrap.kafka:9092
+            - name: IOTMAPPER_DROP_OLD_RECORDS
+              value: "false"
+  volumeClaimTemplates:
+    - metadata:
+        name: state-stores
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 2Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iotmapper-dataprocessing-input-central
+  namespace: kafka
+  labels:
+    app: iotmapper-dataprocessing-input-central
+spec:
+  selector:
+    name: iotmapper-dataprocessing-input-central
+  type: NodePort
+  ports:
+    - port: 6006
+      protocol: TCP
+      targetPort: 6006
+      nodePort: 31006

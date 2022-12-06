@@ -1,0 +1,49 @@
+---
+- name: initial_setup
+  hosts: all
+  gather_facts: False
+  tasks:
+    - name: install microk8s
+      become: yes
+      become_method: sudo
+      shell:
+        snap install microk8s --classic --channel=1.24/stable
+
+    - name: adding current user "{{ ansible_user }}" to group kubernetes
+      user:
+        name: "{{ ansible_user }}"
+        groups: "{{ kubernetes_user }}"
+        append: yes
+      become: yes
+
+    - name: add microk8s folder
+      file:
+        path: ~/.kube
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        mode: 0766
+
+    - name: install python packages
+      become: yes
+      pip:
+        name: [ 'openshift==0.12.0', 'kubernetes==12.0.0' ]
+        umask: "0000"
+
+    - name: configure microk8s-tokens
+      shell: |
+        export LC_ALL=C.UTF-8 
+        export LANG=C.UTF-8 
+        token=$(microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1) 
+        microk8s kubectl -n kube-system describe secret $token
+
+    - name: add download folder
+      file:
+        path: ~/ansible
+        state: directory
+
+- import_playbook: "./master_setup.yaml"
+- import_playbook: "./workers_setup.yaml"
+- import_playbook: "./cluster_setup.yaml"
+
+

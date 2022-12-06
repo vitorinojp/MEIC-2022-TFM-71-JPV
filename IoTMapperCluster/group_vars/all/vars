@@ -1,0 +1,1 @@
+ansible_password_from_vault: "{{ ansible_password_from_vault }}"

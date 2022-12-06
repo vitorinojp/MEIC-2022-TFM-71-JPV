@@ -1,0 +1,142 @@
+MeasuresAggregation:
+  description: 'Description of a generic aggregation of measures/metrics'
+  properties:
+    dateCreated:
+      description: 'Entity creation timestamp. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    dateModified:
+      description: 'Timestamp of the last modification of the entity. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    id:
+      description: 'Property. Identifier format of any NGSI entity'
+      maxLength: 256
+      minLength: 1
+      pattern: ^[\w\-\.\{\}\$\+\*\[\]`|~^@!,:\\]+$
+      type: string
+      x-ngsi:
+        type: Property
+    name:
+      description: 'The name of this item.'
+      type: string
+      x-ngsi:
+        type: Property
+    type:
+      description: 'NGSI Entity type. It has to be MeasuresAggregation'
+      enum:
+        - MeasuresAggregation
+      type: string
+      x-ngsi:
+        type: Property
+    dateLastGwUpdate:
+      description: 'Timestamp of the last action that led to the rest of the this aggregation'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    dateLastUpdate:
+      description: 'Timestamp of the last measure aggregated'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    gwId:
+      description: 'Unique identifier of the Gateway'
+      maxLength: 256
+      minLength: 1
+      pattern: ^[\w\-\.\{\}\$\+\*\[\]`|~^@!,:\\]+$
+      type: string
+      x-ngsi:
+        type: Property
+    mapTile:
+      description: 'Unique identifier of the geographic area'
+      maxLength: 128
+      minLength: 1
+      pattern: ^[\w\-\.\{\}\$\+\*\[\]`|~^@!,:\\]+$
+      type: string
+      x-ngsi:
+        type: Property
+    measures:
+      description: 'List of aggregated measures'
+      type: array
+      items:
+        properties:
+          name:
+            type: string
+          value:
+            type: double
+        type: object
+    location:
+      description: 'Geojson reference to the location covered by the item. It can be Polygon or MultiPolygon'
+      oneOf:
+        - description: 'Geoproperty. Geojson reference to the item. Polygon'
+          properties:
+            bbox:
+              items:
+                type: number
+              minItems: 4
+              type: array
+            coordinates:
+              items:
+                items:
+                  items:
+                    type: number
+                  minItems: 2
+                  type: array
+                minItems: 4
+                type: array
+              type: array
+            type:
+              enum:
+                - Polygon
+              type: string
+          required:
+            - type
+            - coordinates
+          title: 'GeoJSON Polygon'
+          type: object
+        - description: 'Geoproperty. Geojson reference to the item. MultiPolygon'
+          properties:
+            bbox:
+              items:
+                type: number
+              minItems: 4
+              type: array
+            coordinates:
+              items:
+                items:
+                  items:
+                    items:
+                      type: number
+                    minItems: 2
+                    type: array
+                  minItems: 4
+                  type: array
+                type: array
+              type: array
+            type:
+              enum:
+                - MultiPolygon
+              type: string
+          required:
+            - type
+            - coordinates
+          title: 'GeoJSON MultiPolygon'
+          type: object
+      x-ngsi:
+        type: Geoproperty
+
+  required:
+    - id
+    - type
+    - gwId
+    - mapTile
+    - measures
+    - location
+  type: object
+  version: 0.1.0

@@ -1,0 +1,9 @@
+---
+- import_playbook: ./sub_playbooks/common/initial_setup.yaml
+- import_playbook: ./sub_playbooks/monitoring/deploy_monitoring.yaml
+#- import_playbook: ./sub_playbooks/mqtt/deploy_mqtt.yaml # For local testing of the input layer ONLY
+- import_playbook: ./sub_playbooks/fiware/deploy_fiware.yaml
+- import_playbook: ./sub_playbooks/kafka/deploy_kafka.yaml
+- import_playbook: ./sub_playbooks/presentation/deploy_presentation.yaml
+- import_playbook: ./sub_playbooks/loadbalancer/deploy_load_balancing.yaml
+

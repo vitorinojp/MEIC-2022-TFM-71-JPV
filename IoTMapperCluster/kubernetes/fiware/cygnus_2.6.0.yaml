@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cygnus-input-central-config
+  namespace: fiware
+  labels:
+    app: cygnus-input-central
+data:
+  config: |
+    flume.root.logger=WARN,console
+    cygnus-ngsi.sources=http-source
+    cygnus-ngsi.sinks=kafka-sink
+    cygnus-ngsi.channels=kafka-channel
+    cygnus-ngsi.sources.http-source.channels=kafka-channel
+    cygnus-ngsi.sources.http-source.type=org.apache.flume.source.http.HTTPSource
+    cygnus-ngsi.sources.http-source.port=5051
+    cygnus-ngsi.sources.http-source.handler=com.telefonica.iot.cygnus.handlers.NGSIRestHandler
+    cygnus-ngsi.sources.http-source.handler.notification_target=/notify
+    cygnus-ngsi.sources.http-source.handler.default_service=def_serv
+    cygnus-ngsi.sources.http-source.handler.default_service_path=/def_servpath
+    cygnus-ngsi.sources.http-source.handler.events_ttl=2
+    cygnus-ngsi.sources.http-source.interceptors=ts
+    cygnus-ngsi.sources.http-source.interceptors.ts.type=timestamp
+    cygnus-ngsi.channels.kafka-channel.type=file
+    cygnus-ngsi.channels.kafka-channel.capacity=10000
+    cygnus-ngsi.channels.kafka-channel.trasactionCapacity=10000
+    cygnus-ngsi.sinks.kafka-sink.type=com.telefonica.iot.cygnus.sinks.NGSIKafkaSink
+    cygnus-ngsi.sinks.kafka-sink.channel=kafka-channel
+    cygnus-ngsi.sinks.kafka-sink.enable_grouping=false
+    cygnus-ngsi.sinks.kafka-sink.data_model=dm-by-service-path
+    cygnus-ngsi.sinks.kafka-sink.broker_list=kafka-input-central-cluster-kafka-bootstrap.kafka:9092
+    cygnus-ngsi.sinks.kafka-sink.batch_size=1000
+    cygnus-ngsi.sinks.kafka-sink.batch_timeout=1
+  log4j: |
+    flume.root.logger=DEBUG,console
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cygnus-input-central
+  namespace: fiware
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cygnus-input-central
+  template:
+    metadata:
+      labels:
+        app: cygnus-input-central
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: input
+      containers:
+        - name: cygnus
+          image: vitorinojp/cygnus-ngsi:latest
+          volumeMounts:
+            - name: config-volume
+              mountPath: /opt/apache-flume/conf/
+          resources:
+            requests:
+              cpu: "0.5"
+              ephemeral-storage: "500Mi"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              ephemeral-storage: "1Gi"
+              memory: "2Gi"
+          ports:
+            - containerPort: 5080
+            - containerPort: 5051
+          env:
+            - name: CYGNUS_MONGO_SERVICE_PORT
+              value: "5051"
+            - name: CYGNUS_SERVICE_PORT
+              value: "5051"
+            - name: CYGNUS_API_PORT
+              value: "5080"
+            - name: CYGNUS_LOG_LEVEL
+              value: "DEBUG" # The logging level for Cygnus
+            - name: CYGNUS_JAVA_OPTS
+              value: "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=6006"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cygnus-input-central-config
+            items: 
+              - key: "config"
+                path: "agent.conf"
+              - key: "log4j"
+                path: "log4j.properties"
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cygnus-input-central-svc
+  namespace: fiware
+  labels:
+    app: cygnus-input-central-svc
+spec:
+  selector:
+    app: cygnus-input-central
+  type: NodePort
+  ports:
+    - port: 5051
+      protocol: TCP
+      targetPort: 5051
+      name: "notification-port"
+    - port: 5080
+      protocol: TCP
+      targetPort: 5080
+      name: "api-port"
+    - port: 6006
+      protocol: TCP
+      targetPort: 6006
+      nodePort: 30003
+      name: "depuration-port"

@@ -1,0 +1,32 @@
+{
+  "headers": [
+    {
+      "source" : "static/*/*",
+      "headers" : [{
+        "key" : "Cache-Control",
+        "value" : "max-age=31536000"
+      }]
+    },
+    {
+      "source" : "config.js",
+      "headers" : [{
+        "key" : "Cache-Control",
+        "value" : "max-age=60"
+      }]
+    },
+    {
+      "source" : "*.@(jpg|jpeg|gif|png|ico|txt|json)",
+      "headers" : [{
+        "key" : "Cache-Control",
+        "value" : "max-age=60"
+      }]
+    },
+    {
+      "source" : "index.html",
+      "headers" : [{
+        "key" : "Cache-Control",
+        "value" : "max-age=1"
+      }]
+    }
+  ]
+}

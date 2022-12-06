@@ -1,0 +1,1 @@
+export type MapStateSetActiveType = (active: string) => void

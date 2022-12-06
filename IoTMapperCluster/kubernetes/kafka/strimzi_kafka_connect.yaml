@@ -1,0 +1,51 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: kafka-connect-cluster
+  namespace: kafka
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  replicas: 1
+  image: vitorinojp/camel-http-sink-kafka-connect:latest
+  bootstrapServers: kafka-input-central-cluster-kafka-bootstrap:9092
+  template:
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.iotmapper/layer
+                    operator: In
+                    values:
+                      - input
+  jvmOptions:
+    gcLoggingEnabled: false
+  logging:
+    loggers:
+      connect.root.logger.level: WARN
+      kafka.root.logger.level: WARN
+    type: inline
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: connect-metrics
+        key: metrics-config.yml
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  config:
+    config.storage.replication.factor: 1
+    config.storage.topic: kafka-connect-cluster-configs
+    group.id: kafka-connect-cluster
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    offset.storage.replication.factor: 1
+    offset.storage.topic: kafka-connect-cluster-offsets
+    status.storage.replication.factor: 1
+    status.storage.topic: kafka-connect-cluster-status
+    value.converter: org.apache.kafka.connect.storage.StringConverter

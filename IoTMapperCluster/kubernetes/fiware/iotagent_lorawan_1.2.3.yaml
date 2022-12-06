@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iotagent-lorawan
+  namespace: fiware
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotagent-lorawan
+  template:
+    metadata:
+      labels:
+        app: iotagent-lorawan
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: input
+      containers:
+        - name: iotagent-lorawan
+          image: vitorinojp/iot-agent:1.2.3-14
+          resources:
+            requests:
+              cpu: "0.5"
+              ephemeral-storage: "500Mi"
+              memory: "250Mi"
+            limits:
+              ephemeral-storage: "1Gi"
+              memory: "1Gi"
+          ports:
+            - containerPort: 4041
+          env:
+            - name: IOTA_MULTICORE
+              value: "true"
+            - name: IOTA_CB_HOST
+              value: "orion-input-central-svc.fiware.svc.cluster.local"
+            - name: IOTA_CB_PORT
+              value: "1026"
+            - name: IOTA_NORTH_PORT
+              value: "4041"
+            - name: IOTA_LOG_LEVEL
+              value: "ERROR" # The log level of the IoT Agent
+            - name: IOTA_CB_NGSI_VERSION
+              value: "v2"
+            - name: IOTA_REGISTRY_TYPE
+              value: "mongodb"
+            - name: IOTA_MONGO_HOST
+              value: "mongodb-input-central-svc.fiware.svc.cluster.local"
+            - name: IOTA_MONGO_PORT
+              value: "27017" # The port mongoDB is listening on
+            - name: IOTA_MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-input-central-admin-admin-user
+                  key: username
+            - name: IOTA_MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-input-central-admin-admin-user
+                  key: password
+            - name: IOTA_MONGO_AUTH_SOURCE
+              value: "admin"
+            - name: IOTA_MONGO_SSL
+              value: "FALSE"
+            - name: IOTA_PROVIDER_URL
+              value: "http://iot-agent:4041"
+            - name: TEST_TO_MOSQUITTO
+              value: "true"
+            - name: MOSQUITTO_HOST
+              value: mqtt-broker.mqtt
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iotagent-lorawan
+  namespace: fiware
+  labels:
+    app: iotagent-lorawan
+spec:
+  selector:
+    app: iotagent-lorawan
+  type: NodePort
+  ports:
+    - port: 4041
+      protocol: TCP
+      targetPort: 4041
+      nodePort: 31041

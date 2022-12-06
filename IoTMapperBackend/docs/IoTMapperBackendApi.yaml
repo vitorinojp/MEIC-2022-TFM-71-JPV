@@ -1,0 +1,736 @@
+openapi: 3.0.3
+info:
+  title: IoTMapperBackendApi
+  description: IoTMapperBackendApi. Specifies the public Web API to access info on supported LPWAN, calculated metrics and information on gateways
+  version: 0.1.0
+servers:
+  - url: 'https://iotmapper.{WIP}/api/v1/'
+    description: Main production server
+externalDocs:
+  description: IoTMapper API Guide
+  url: https://iotmapper.{WIP}/help/api/
+paths:
+  # Metrics endpoints
+  /metrics/list/{lpwan}:
+    get:
+      description: Get the list of calculated metrics.
+      responses:
+        200:
+          description: Ok - Regular response, list of metrics, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 1s
+                enum:
+                  - max-age=1
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/ListMetrics'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Offset"
+    post:
+      description: Search based on central location
+      responses:
+        200:
+          description: Ok - Regular response, list of metrics, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 1s
+                enum:
+                  - max-age=1
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/ListMetrics'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Offset"
+      requestBody:
+        description: Filter by a region
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationFilterInputModel"
+  /metrics/entity/{lpwan}/{id}:
+    get:
+      description: Get a specific metric by LPWAN dependent id
+      responses:
+        200:
+          description: Ok - Regular response,the metric, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 1s
+                enum:
+                  - max-age=1
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/SingleMetrics'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/IdMetric'
+
+# Gateways endpoints
+  /gateways/list/{lpwan}:
+    get:
+      description: Get the list of gateways
+      responses:
+        200:
+          description: Ok - Regular response, list of gateways, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 60s
+                enum:
+                  - max-age=60
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/ListGateways'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Offset"
+    post:
+      description: Search based on central location
+      responses:
+        200:
+          description: Ok - Regular response, list of gateways, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 60s
+                enum:
+                  - max-age=60
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/ListGateways'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Offset"
+      requestBody:
+        description: Filter by a region
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationFilterInputModel"
+  /gateways/entity/{lpwan}/{id}:
+    get:
+      description: Get a specific gateways by LPWAN and specific id
+      responses:
+        200:
+          description: Ok - Regular response, the gateway, or empty.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 60s
+                enum:
+                  - max-age=60
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/SingleGateways'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/GwMetric'
+
+# Info endpoints
+  /info/list:
+    get:
+      description: Get the list of avaible lpwans.
+      responses:
+        200:
+          description: Ok - Regular response, list of lpwans.
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 60s
+                enum:
+                  - max-age=60
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/ListLpwan'
+      parameters:
+        - $ref: '#/components/parameters/LpwanQuery'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: "#/components/parameters/Offset"
+  /info/entry/{lpwan}:
+    get:
+      description: Ask for additional information regarding a lpwan, if there is any
+      responses:
+        200:
+          description: Ok - Regular response, info about a lpwan
+          headers:
+            Cache-Control:
+              description: Cache-Control header
+              schema:
+                type: string
+                default: 60s
+                enum:
+                  - max-age=60
+                  - must-revalidate
+                  - public
+          content:
+            application/vnd.siren+json:
+              schema:
+                $ref: '#/components/responses/SingleLpwan'
+
+components:
+  responses:
+    ListMetrics:
+      description: List of requested metrics
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: '#/components/schemas/ListMetrics'
+    ListGateways:
+      description: List of requested gateways
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: '#/components/schemas/ListGateways'
+    ListLpwan:
+      description: List of lpwans
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: '#/components/schemas/ListLpwan'
+    SingleMetrics:
+      description: A single metrics object
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: "#/components/schemas/SingleMetrics"
+    SingleGateways:
+      description: A single gateway object, if exists, else empty
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: '#/components/schemas/SingleGateways'
+    SingleLpwan:
+      description: A single lpwan object
+      content:
+        application/vnd.siren+json:
+          schema:
+            $ref: "#/components/schemas/SingleLpwan"
+  parameters:
+    LpwanQuery:
+      in: path
+      name: lpwan
+      required: true
+      schema:
+        type: string
+      description: The LPWAN id to filter by.
+    Limit:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        format: Int64
+        default: 50
+      description: The limit of results to return. No guarantees on its ordering
+    Offset:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        format: Int64
+        default: 0
+      description: The starting point of results to return. No guarantees on its ordering
+    IdMetric:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: The LPWAN specific id of a metrics, given as H( GeoHash || IdGw )
+    GwMetric:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      description: The LPWAN specific id of a metrics, given as H( GeoHash || IdGw )
+
+  schemas:
+    # IoTMapper base models
+    ListMetrics:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: "#/components/schemas/MetricsBaseObject"
+    SingleMetrics:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            result:
+              $ref: "#/components/schemas/MetricsBaseObject"
+    ListGateways:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: "#/components/schemas/GatewaysBaseObject"
+    SingleGateway:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            result:
+              $ref: "#/components/schemas/GatewayBaseObject"
+    ListLpwans:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: "#/components/schemas/LpwanInfo"
+    SingleLpwan:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+          properties:
+            result:
+              $ref: "#/components/schemas/LpwanInfo"
+    MetricsBaseObject:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/Geometry"
+        mapTile:
+          type: string
+        gwId:
+          type: string
+        id:
+          type: string
+        measures:
+          type: object
+          description: A LPWAN dependant object with metric values. At least must have RSSI.
+          properties:
+            rssi:
+              type: number
+              format: double
+        dateLastGwChange:
+          type: string
+          required: false
+          description: The timestamp for the last action that trigered the measures reset
+        dateLastUpdate:
+          type: string
+          required: false
+          description: The timestamp for the last observed change, if avaible.
+    GatewayBaseObject:
+      type: object
+      properties:
+        point:
+          $ref: "#/components/schemas/Point"
+        id:
+          type: string
+        timestamp:
+          type: string
+          required: false
+          description: The timestamp for the last observed change.
+    LpwanInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The object unique id.
+        type:
+          type: string
+          description: The entity type.
+        name:
+          type: string
+          description: The name of the LPWAN. To be used for requests.
+        dateLastUpdate:
+          type: string
+          required: false
+          description: The timestamp of the last change mande to the info object
+        metricsList:
+          type: array
+          items:
+            type: string
+            description: The list of metrics ids that are available for this LPWAN.
+    LocationFilterInputModel:
+      type: object
+      properties:
+        maxDistance:
+          type: integer
+          format: Int64
+          required: true
+        point:
+          $ref: "#/components/schemas/GeoPair"
+    GeoPair:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+          required: true
+        lon:
+          type: number
+          format: double
+          required: true
+
+    # Siren base models
+    Entity:
+      type: object
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/definitions/SubEntity'
+        actions:
+          type: array
+          items:
+            $ref: '#/definitions/Action'
+        links:
+          type: array
+          items:
+            $ref: '#/definitions/Link'
+    SubEntity:
+      type: object
+      properties:
+        href:
+          type: string
+        rel:
+          type: array
+          items:
+            type: string
+        class:
+          type: array
+          items:
+            type: string
+        properties:
+          type: object
+        entities:
+          type: array
+          items:
+            $ref: '#/definitions/SubEntity'
+        actions:
+          type: array
+          items:
+            $ref: '#/definitions/Action'
+        links:
+          type: array
+          items:
+            $ref: '#/definitions/Link'
+    Action:
+      type: object
+      required:
+        - name
+        - href
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+        method:
+          type: string
+        href:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/definitions/Field'
+    Field:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - hidden
+            - text
+            - search
+            - tel
+            - url
+            - email
+            - password
+            - datetime
+            - date
+            - month
+            - week
+            - time
+            - datetime-local
+            - number
+            - range
+            - color
+            - checkbox
+            - radio
+            - file
+        title:
+          type: string
+        value:
+          type: string
+    Link:
+      type: object
+      required:
+        - rel
+        - href
+      properties:
+        class:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+        rel:
+          type: array
+          items:
+            type: string
+        href:
+          type: string
+        type:
+          type: string
+    # GeoJSON Base models
+    Geometry:
+      type: object
+      description: GeoJSon geometry
+      required:
+        - type
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometry-objects
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+            - LineString
+            - Polygon
+            - MultiPoint
+            - MultiLineString
+            - MultiPolygon
+          description: the geometry type
+    Point3D:
+      type: array
+      description: Point in 3D space
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id2
+      minItems: 2
+      maxItems: 3
+      items:
+        type: number
+    Point:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id2
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              $ref: '#/definitions/Point3D'
+    LineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id3
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/definitions/Point3D'
+    Polygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id4
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Point3D'
+    MultiPoint:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id5
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/definitions/Point3D'
+    MultiLineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Point3D'
+    MultiPolygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: "#/definitions/Geometry"
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Point3D'
+    GeometryCollection:
+      type: object
+      description: GeoJSon geometry collection
+      required:
+        - type
+        - geometries
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometrycollection
+      properties:
+        type:
+          type: string
+          enum:
+            - GeometryCollection
+        geometries:
+          type: array
+          items:
+            $ref: '#/definitions/Geometry'
+    Feature:
+      type: object
+      description: GeoJSon Feature
+      required:
+        - type
+        - id
+        - geometry
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946#section-3.2
+      properties:
+        type:
+          type: string
+          enum:
+            - Feature
+        id:
+          type: integer
+        geometry:
+          $ref: '#/definitions/GeometryCollection'
+        properties:
+          type: object
+    FeatureCollection:
+      type: object
+      description: GeoJSon Feature collection
+      required:
+        - type
+        - features
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946#section-3.3
+      properties:
+        type:
+          type: string
+          enum:
+            - FeatureCollection
+        features:
+          type: array
+          items:
+            $ref: '#/definitions/Feature'

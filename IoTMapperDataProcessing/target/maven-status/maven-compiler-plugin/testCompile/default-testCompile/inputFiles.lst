@@ -1,0 +1,7 @@
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/commons/utils/JsonDeserializerTest.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/IoTMapperDataProcessingTest.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/models/cygnus/CygnusTopicMessageTest.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/models/metrics/lorawan/LoRaWanUplinkMessageTest.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/streams/mapping/MapToRecordTypeTest.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/Patterns.java
+/home/jpv/IoTMapper/IoTMapperDataProcessing/src/test/java/org/iotmapper/processing/TestStrings.java

@@ -1,0 +1,41 @@
+---
+- name: deploy_exit
+  hosts: master
+  gather_facts: false
+  tasks:
+    - name: synchronizing "{{ fiware_path }}/mongo_exit_{{ mongo_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/mongo_exit_{{ mongo_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/mongo_exit_{{ mongo_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for /ansible/fiware/mongo_exit_{{ mongo_version }}.yaml
+      k8s:
+        src: "~/ansible/fiware/mongo_exit_{{ mongo_version }}.yaml"
+        apply: yes
+        wait: yes
+
+    - name: synchronizing "{{ fiware_path }}/mongo_exit_{{ mongo_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/mongo_exit_{{ mongo_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/mongo_exit_{{ mongo_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: synchronizing "{{ fiware_path }}/orion_exit_{{ fiware_orion_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/orion_exit_{{ fiware_orion_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/orion_exit_{{ fiware_orion_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for FIWARE Orion CB (Exit)
+      k8s:
+        src: "~/ansible/fiware/orion_exit_{{ fiware_orion_version }}.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware

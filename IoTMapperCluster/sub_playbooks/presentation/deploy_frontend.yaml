@@ -1,0 +1,33 @@
+---
+- name: deploy_presentation
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: Inject config.js
+      k8s:
+        apply: yes
+        resource_definition: |
+          kind: ConfigMap
+          apiVersion: v1
+          metadata:
+            name: config.js
+            namespace: presentation
+          data:
+            config.js: |
+              window.BACKEND_PROTOCOL = "http://"
+              window.BACKEND_HOST = "{{ backend_host }}"
+              window.BACKEND_PORT = "80"
+
+    - name: synchronizing "{{ presentation_path }}/frontend.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ presentation_path }}/frontend.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/presentation/frontend.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Frontend
+      k8s:
+        src: "/home/{{ ansible_user }}/ansible/presentation/frontend.yaml"
+        apply: yes
+        wait: yes

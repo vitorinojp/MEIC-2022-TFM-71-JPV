@@ -1,0 +1,65 @@
+---
+- name: deploy_load_balancing
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: add load balancing folders
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        mode: u=rwx,g=rwx,o=rwx
+      with_items:
+        - "/home/{{ ansible_user }}/ansible/ingress/"
+        - "/home/{{ ansible_user }}/ansible/metallb/"
+
+    - name: Enable ingress
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable ingress"
+
+    - name: copy "{{ load_balancing_path }}/ingress/" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ load_balancing_path }}/ingress/"
+        dest: "/home/{{ ansible_user }}/ansible/ingress/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+        # rsync_opts:
+        # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Ingress
+      k8s:
+        src: "~/ansible/ingress/ingress_{{ ingress_version }}.yaml"
+        apply: yes
+        wait: yes
+
+    - name: run kubectl for Nginx Service
+      k8s:
+        src: "~/ansible/ingress/nginx_load_service.yaml"
+        apply: yes
+        wait: yes
+
+    - name: Enable MetalLB
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable metallb:{{ loadbalancing_ip_range }}"
+
+    - name: Set up config map for MetalLB
+      k8s:
+        apply: yes
+        resource_definition: |
+          kind: ConfigMap
+          apiVersion: v1
+          metadata:
+            name: config
+            namespace: metallb-system
+          data:
+            config: |
+              address-pools:
+              - name: exit-central
+                protocol: layer2
+                addresses:
+                - {{ loadbalancing_ip_range }}

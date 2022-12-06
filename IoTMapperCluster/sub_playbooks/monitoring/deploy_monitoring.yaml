@@ -1,0 +1,96 @@
+---
+- name: deploy_monitoring
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: add grafana folders
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        mode: u=rwx,g=rwx,o=rwx
+      with_items:
+        - "/home/{{ ansible_user }}/ansible/monitoring/"
+        - "/var/lib/grafana/datasources/"
+        - "/var/lib/grafana/dashboards/"
+        - "/var/lib/grafana/plugins/"
+        - "/etc/grafana/provisioning/dashboards/"
+        - "/etc/grafana/provisioning/datasources/"
+
+    - name: copy "{{ monitoring_path }}/dashboard_list/" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ monitoring_path }}/dashboard_list/"
+        dest: "/var/lib/grafana/dashboards/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+        # rsync_opts:
+        # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: copy "{{ monitoring_path }}/dashboards/" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ monitoring_path }}/dashboards/"
+        dest: "/etc/grafana/provisioning/dashboards/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+          # rsync_opts:
+          # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+          # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: copy "{{ monitoring_path }}/datasources/" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ monitoring_path }}/datasources/"
+        dest: "/etc/grafana/provisioning/datasources/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+          # rsync_opts:
+          # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+          # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: Enable prometheus & grafana
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable prometheus"
+
+    - name: copy "{{ monitoring_path }}/grafana_change.yaml" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ monitoring_path }}/grafana_change.yaml"
+        dest: "~/ansible/monitoring/grafana_change.yaml"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+          # rsync_opts:
+          # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+          # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Grafana - grafana_change.yaml
+      k8s:
+        src: "~/ansible/monitoring/grafana_change.yaml"
+        apply: yes
+        wait: yes
+
+    - name: copy "{{ monitoring_path }}/prometheus.yaml" with playbook
+      copy:
+        src: "{{ inventory_dir }}/{{ monitoring_path }}/prometheus.yaml"
+        dest: "~/ansible/monitoring/prometheus.yaml"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+          # rsync_opts:
+          # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for Prometheus - prometheus.yaml
+      k8s:
+        src: "~/ansible/monitoring/prometheus.yaml"
+        apply: yes
+        wait: yes

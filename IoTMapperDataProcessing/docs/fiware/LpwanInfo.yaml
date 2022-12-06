@@ -1,0 +1,57 @@
+LpwanInfo:
+  description: 'Description of a LPWAN network'
+  properties:
+    dateCreated:
+      description: 'Entity creation timestamp. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    dateModified:
+      description: 'Timestamp of the last modification of the entity. This will usually be allocated by the storage platform.'
+      format: date-time
+      type: string
+      x-ngsi:
+        type: Property
+    id:
+      description: 'Property. Identifier format of any NGSI entity'
+      maxLength: 256
+      minLength: 1
+      pattern: ^[\w\-\.\{\}\$\+\*\[\]`|~^@!,:\\]+$
+      type: string
+      x-ngsi:
+        type: Property
+    name:
+      description: 'The name of LPWAN Network.'
+      enum:
+        - lorawan
+        - nbiot
+      type: string
+      x-ngsi:
+        type: Property
+    type:
+      description: 'NGSI Entity type. It has to be LpwanInfo'
+      enum:
+        - LpwanInfo
+      type: string
+      x-ngsi:
+        type: Property
+    measures:
+      description: 'List of predictable aggregation measures'
+      type: array
+      items:
+        properties:
+          name:
+            type: string
+          unit:
+            type: string
+          mandatory:
+            type: boolean
+        type: object
+
+  required:
+    - id
+    - type
+    - measures
+  type: object
+  version: 0.1.0

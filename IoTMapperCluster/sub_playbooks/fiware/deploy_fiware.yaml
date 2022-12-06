@@ -1,0 +1,31 @@
+---
+- name: deploy_fiware
+  hosts: master
+  gather_facts: false
+  tasks:
+    - name: add fiware folders
+      file:
+        path: "~/ansible/{{item}}"
+        state: directory
+        mode: 0777
+      with_items:
+        - "fiware"
+        - "fiware/subscriptions"
+        - "fiware/provisioning"
+
+    - name: Create the fiware namespace
+      kubernetes.core.k8s:
+        name: fiware
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Make sure the monitoring namespace exists
+      kubernetes.core.k8s:
+        name: monitoring
+        api_version: v1
+        kind: Namespace
+        state: present
+
+-  import_playbook: ./deploy_input.yaml
+-  import_playbook: ./deploy_exit.yaml

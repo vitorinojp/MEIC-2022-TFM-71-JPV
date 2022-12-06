@@ -1,0 +1,22 @@
+---
+- name: deploy_presentation
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: Create the presentation namespace
+      kubernetes.core.k8s:
+        name: presentation
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: add fiware folders
+      file:
+        path: "~/ansible/{{item}}"
+        state: directory
+        mode: 0777
+      with_items:
+        - "presentation"
+
+- import_playbook: ./deploy_frontend.yaml
+- import_playbook: ./deploy_backend.yaml

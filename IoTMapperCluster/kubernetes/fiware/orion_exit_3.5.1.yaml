@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orion-exit-cluster
+  namespace: fiware
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orion-exit-cluster
+  template:
+    metadata:
+      labels:
+        app: orion-exit-cluster
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: exit
+      containers:
+        - name: orion
+          image: fiware/orion:3.5.1
+          resources:
+            requests:
+              ephemeral-storage: "500Mi"
+              memory: "500Mi"
+            limits:
+              ephemeral-storage: "1Gi"
+              memory: "1Gi"
+          ports:
+            - containerPort: 1026
+          args: ['-reqMutexPolicy', 'none', '-logLevel', 'ERROR', '-reqPoolSize', '4', '-disableMetrics']
+          env:
+            - name: ORION_PORT
+              value: "1026"
+            - name: ORION_MONGO_HOST
+              value: "mongo-exit-svc.fiware.svc.cluster.local" # Assumes this connection string, not the one set in the secret, as they have incompatible formats
+            - name: ORION_MONGO_PORT
+              value: "27017"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-exit-cluster
+  namespace: fiware
+  labels:
+    app: orion-exit-cluster
+spec:
+  selector:
+    app: orion-exit-cluster
+  type: NodePort
+  ports:
+    - port: 1026
+      protocol: TCP
+      targetPort: 1026
+      nodePort: 31027

@@ -1,0 +1,14 @@
+---
+- name: workers_setup
+  hosts: workers
+  gather_facts: False
+  tasks:
+    - name: Join cluster
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && {{ hostvars['ADD_NODE_TOKEN_HOLDER']['token_cmd'] }} --skip-verify"
+      register: result
+      failed_when:
+        - result.rc != 0
+        - "'504' not in result.stdout"
+      changed_when:
+        - "'504' not in result.stdout"

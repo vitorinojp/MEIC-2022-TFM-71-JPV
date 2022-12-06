@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iotmapper-backend-exit-central
+  namespace: presentation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotmapper-backend-exit-central
+  template:
+    metadata:
+      labels:
+        app: iotmapper-backend-exit-central
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: exit
+      containers:
+        - name: iotmapperpresentation
+          image: vitorinojp/iotmapperbackend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: ORION_HOST
+              value: orion-exit-cluster.fiware.svc
+            - name: ORION_PORT
+              value: "1026"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-exit-central
+  namespace: presentation
+  labels:
+    app: iotmapper-backend-exit-central
+spec:
+  selector:
+    app: iotmapper-backend-exit-central
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80

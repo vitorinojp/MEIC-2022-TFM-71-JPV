@@ -1,0 +1,155 @@
+---
+- name: deploy_input
+  hosts: master
+  gather_facts: false
+  tasks:
+    - name: synchronizing "{{ fiware_path }}/mongodbcommunity_operator_{{ mongodb_operator_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/mongodbcommunity_operator_{{ mongodb_operator_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/mongodbcommunity_operator_{{ mongodb_operator_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for MongoDB Community Operator
+      k8s:
+        src: "~/ansible/fiware/mongodbcommunity_operator_{{ mongodb_operator_version }}.yaml"
+        apply: yes
+        wait: yes
+
+    - name: synchronizing "{{ fiware_path }}/mongodb_community_{{ mongo_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/mongodb_community_{{ mongo_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/mongodb_community_{{ mongo_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for MongoDB (MongoDBCommunity)
+      k8s:
+        src: "~/ansible/fiware/mongodb_community_{{ mongo_version }}.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware
+
+    - name: synchronizing "{{ fiware_path }}/mongodb_admin_secret.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/mongodb_admin_secret.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/mongodb_admin_secret.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+      no_log: yes
+
+    - name: run kubectl for MongoDB Admin Secret (MongoDBCommunity)
+      k8s:
+        src: "~/ansible/fiware/mongodb_admin_secret.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware
+      no_log: yes
+
+    - name: Clean "/home/{{ ansible_user }}/ansible/fiware/mongodb_admin_secret.yaml"
+      file:
+        state: absent
+        path: "/home/{{ ansible_user }}/ansible/fiware/mongodb_admin_secret.yaml"
+      no_log: yes
+
+    - name: synchronizing "{{ fiware_path }}/orion_input_{{ fiware_orion_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/orion_input_{{ fiware_orion_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/orion_input_{{ fiware_orion_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for FIWARE Orion CE
+      k8s:
+        src: "~/ansible/fiware/orion_input_{{ fiware_orion_version }}.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware
+
+    - name: synchronizing "{{ fiware_path }}/cygnus_{{ fiware_cygnus_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/cygnus_{{ fiware_cygnus_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/cygnus_{{ fiware_cygnus_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for FIWARE Cygnus
+      k8s:
+        src: "~/ansible/fiware/cygnus_{{ fiware_cygnus_version }}.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware
+
+    - name: synchronizing "{{ fiware_path }}/iotagent_lorawan_{{ iotagent_lorawan_version }}.yaml"
+      synchronize:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/iotagent_lorawan_{{ iotagent_lorawan_version }}.yaml"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/iotagent_lorawan_{{ iotagent_lorawan_version }}.yaml"
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=rx,Fo=rx"
+          - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: run kubectl for FIWARE IoTAgent-LoRaWAN
+      k8s:
+        src: "~/ansible/fiware/iotagent_lorawan_{{ iotagent_lorawan_version }}.yaml"
+        apply: yes
+        wait: yes
+        namespace: fiware
+
+          # Insert content on fiware
+
+    - name: copy "{{ fiware_path }}/subscriptions/"
+      become: yes
+      copy:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/subscriptions/"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/subscriptions/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+        # rsync_opts:
+        # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: dynamic listing of "~/ansible/fiware/subscriptions/"
+      find:
+        paths: "~/ansible/fiware/subscriptions/"
+        file_type: file
+        patterns: '*.yaml'
+      register: orion_subscriptions_list
+
+    - name: kubectl create subcriptions in Orion
+      loop: "{{ orion_subscriptions_list['files'] }}"
+      k8s:
+        src: "{{ item.path }}"
+        apply: yes
+
+    - name: copy "{{ fiware_path }}/provisioning/"
+      become: yes
+      copy:
+        src: "{{ inventory_dir }}/{{ fiware_path }}/provisioning/"
+        dest: "/home/{{ ansible_user }}/ansible/fiware/provisioning/"
+        mode: "0755"
+        owner: "{{ ansible_user }}"
+        group: "{{ kubernetes_user }}"
+        directory_mode: yes
+        # rsync_opts:
+        # - "--chmod=Fu=rwx,Fg=rwx,Fo=rwx"
+        # - "--chown={{ ansible_user }}:{{ kubernetes_user }}"
+
+    - name: dynamic listing of "~/ansible/fiware/provisioning/"
+      find:
+        paths: "~/ansible/fiware/provisioning/"
+        file_type: file
+        patterns: '*.yaml'
+      register: iot_provision_list
+
+    - name: kubectl create provisions in IoTAgent-lorawan
+      loop: "{{ iot_provision_list['files'] }}"
+      k8s:
+        src: "{{ item.path }}"
+        apply: yes

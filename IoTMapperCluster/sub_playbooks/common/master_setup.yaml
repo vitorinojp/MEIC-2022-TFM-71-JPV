@@ -1,0 +1,17 @@
+---
+- name: master_setup
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: Enable cluster
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s add-node"
+      register: cluster_output
+
+    - set_fact:
+        add_node_cmd: "{{ cluster_output.stdout_lines[1] }}"
+
+    - name: "Add add-node token cmd to dummy host"
+      add_host:
+        name: "ADD_NODE_TOKEN_HOLDER"
+        token_cmd: "{{ add_node_cmd }}"

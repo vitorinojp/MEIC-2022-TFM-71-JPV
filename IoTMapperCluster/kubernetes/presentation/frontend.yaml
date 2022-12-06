@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iotmapper-frontend-exit-central
+  namespace: presentation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotmapper-frontend-exit-central
+  template:
+    metadata:
+      labels:
+        app: iotmapper-frontend-exit-central
+    spec:
+      nodeSelector:
+        node.iotmapper/layer: exit
+      containers:
+        - name: iotmapperpresentation
+          image: vitorinojp/iotmapperpresentation:latest
+          ports:
+            - containerPort: 80
+            - containerPort: 8080
+          volumeMounts:
+            #override config.js file
+            - name: config-iotmapper-frontend-exit-central
+              mountPath: "/opt/iotmapperpresentation/config.js"
+              subPath: "config.js"
+          env:
+            - name: PORT
+              value: "80"
+      volumes:
+        - name: config-iotmapper-frontend-exit-central
+          configMap:
+            name: config.js
+            items:
+              - key: "config.js"
+                path: "config.js"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-exit-central
+  namespace: presentation
+  labels:
+    app: iotmapper-frontend-exit-central
+spec:
+  selector:
+    app: iotmapper-frontend-exit-central
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80

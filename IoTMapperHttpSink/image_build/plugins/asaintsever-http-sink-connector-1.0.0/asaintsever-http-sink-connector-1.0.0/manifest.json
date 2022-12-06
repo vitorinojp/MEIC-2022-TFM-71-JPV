@@ -1,0 +1,32 @@
+{
+  "name" : "http-sink-connector",
+  "version" : "1.0.0",
+  "title" : "HTTP Sink Connector",
+  "description" : "The HTTP Sink Connector allows you to send events from Kafka topics to HTTP endpoint.",
+  "owner" : {
+    "username" : "asaintsever",
+    "type" : "user",
+    "url" : "https://github.com/asaintsever"
+  },
+  "support" : { },
+  "tags" : [ "http" ],
+  "features" : {
+    "supported_encodings" : [ "any" ],
+    "single_message_transforms" : true,
+    "confluent_control_center_integration" : false,
+    "kafka_connect_api" : true
+  },
+  "documentation_url" : "https://github.com/asaintsever/kafka-connect-http-sink/blob/main/README.md",
+  "source_url" : "https://github.com/asaintsever/kafka-connect-http-sink",
+  "docker_image" : {
+    "namespace" : "asaintsever",
+    "name" : "kafkaconnect-httpsinkconnector",
+    "tag" : "1.0.0"
+  },
+  "license" : [ {
+    "name" : "Apache License, Version 2.0",
+    "url" : "https://www.apache.org/licenses/LICENSE-2.0.txt"
+  } ],
+  "component_types" : [ "sink" ],
+  "release_date" : "2022-07-28"
+}

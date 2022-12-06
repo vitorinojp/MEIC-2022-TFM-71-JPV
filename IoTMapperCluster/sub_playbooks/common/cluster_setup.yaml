@@ -1,0 +1,16 @@
+---
+- name: cluster_setup
+  hosts: master
+  gather_facts: False
+  tasks:
+    - name: export microk8s configs
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s config > ~/.kube/config"
+    - name: Enable storage
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable hostpath-storage"
+    - name: Enable dns
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable dns"
+    - name: Enable dashboard
+      become: yes
+      shell: "export LC_ALL=C.UTF-8 && export LANG=C.UTF-8 && microk8s.enable dashboard"
