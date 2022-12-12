@@ -1,6 +1,8 @@
 # MEIC-2022-TFM-71-JPV
 
 Repositório agregador do código desenvolvido como prototipo e validação da arquitetura proposta no âmbito da TFM-71 de MEIC no ISEL. Com o título "Plataforma de avaliação de QoS de numa rede LoRaWAN". Adicionalmente, parte do código foi utilizado no artigo: "IoTMapper: A Metrics Aggregation System Architecture in Support of Smart City Solutions" (https://doi.org/10.3390/s22197484).
+
+O trabalho apresentando resulta de investigação realizada no grupo de investigação *Future Internet Technologies* (https://fit.isel.pt/), e de investigação no âmbito do projeto Ferrovia 4.0 (ref. LISBOA-01-0247-FEDER-046111 e POCI-01-0247-FEDER-046111).
  
 ## Citar
  
