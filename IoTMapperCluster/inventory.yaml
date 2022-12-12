@@ -9,7 +9,7 @@ all:
           {{ worker_ip }}
     vars:
       # Ansible vars
-      ansible_user: tfm
+      ansible_user: {{ ansible_username }}
       ansible_password: "{{ ansible_password_from_vault }}"
       ansible_become_password: "{{ ansible_password_from_vault }}"
       # Kubernetes vars
