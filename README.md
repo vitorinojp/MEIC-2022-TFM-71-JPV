@@ -16,4 +16,4 @@ Vitorino, J.P.; Cruz, N. IoTMapper: A Metrics Aggregation System Architecture in
  
  ## Instanciação
  
- O *cluster* pode ser construido usando o conjunto de scripts Ansible e especificações de recursos Kubernetes contidos na diretoria: `IoTMapperCluster`. O ficheiro `instructions.md`, da mesma diretoria, contei a informação para utilizar o prototipo. 
+ O *cluster* pode ser construido usando o conjunto de scripts Ansible e especificações de recursos Kubernetes contidos na diretoria: `IoTMapperCluster`. O ficheiro `instructions.md`, da mesma diretoria, contém a informação para utilizar o protótipo. 
